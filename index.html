@@ -21,7 +21,7 @@
       position: relative;
       width: 100%;
       max-width: 400px;
-      aspect-ratio: 1 / 1;
+      height: 400px; /* fixed height to avoid squish */
       margin: auto;
       background-color: #222;
       border: 2px dashed gray;
@@ -139,7 +139,7 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const flipBtn = document.getElementById('flipBtn');
 
-    // Upload
+    // Upload logic
     uploadBox.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -154,7 +154,7 @@
       }
     });
 
-    // Drag cap
+    // Drag logic
     let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
     capContainer.addEventListener('mousedown', (e) => {
       if (!e.target.classList.contains('resize-handle')) {
@@ -172,7 +172,7 @@
     });
     document.addEventListener('mouseup', () => isDragging = false);
 
-    // Resize
+    // Resize logic
     const handles = document.querySelectorAll('.resize-handle');
     let isResizing = false, currentHandle = null;
     let startX, startY, startWidth, startHeight, startLeft, startTop;
@@ -242,35 +242,38 @@
       currentHandle = null;
     });
 
-    // Flip cap
+    // Flip logic
     let flipped = false;
     flipBtn.addEventListener('click', () => {
       flipped = !flipped;
       cap.style.transform = flipped ? 'scaleX(-1)' : 'scaleX(1)';
     });
 
-    // Download logic (wait for cap image load + hide handles)
+    // Download logic
     downloadBtn.addEventListener('click', () => {
-      handles.forEach(h => h.style.display = 'none');
+      handles.forEach(h => h.style.visibility = 'hidden'); // use visibility
 
       const capture = () => {
         html2canvas(document.getElementById('imageContainer'), {
           useCORS: true,
-          backgroundColor: null
+          backgroundColor: null,
+          scale: 2 // Higher quality
         }).then(canvas => {
           const link = document.createElement('a');
           link.download = 'plasma_cap_image.png';
           link.href = canvas.toDataURL();
           link.click();
-          handles.forEach(h => h.style.display = 'block');
+          handles.forEach(h => h.style.visibility = 'visible');
         });
       };
 
-      if (!cap.complete) {
-        cap.onload = capture;
-      } else {
-        capture();
-      }
+      setTimeout(() => {
+        if (!cap.complete) {
+          cap.onload = capture;
+        } else {
+          capture();
+        }
+      }, 100); // ensure DOM updates
     });
   </script>
 </body>
